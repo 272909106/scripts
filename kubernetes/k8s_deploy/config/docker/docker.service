@@ -1,0 +1,27 @@
+[Unit]
+Description=Docker Application Container Engine
+Documentation=https://docs.docker.com
+After=network-online.target firewalld.service
+Wants=network-online.target
+
+[Service]
+# This section specifies the binary path to Docker. 
+# Replace /usr/local/bin/dockerd with the actual location of your Docker binary if different.
+ExecStart=/usr/local/bin/dockerd
+ExecReload=/bin/kill -s HUP $MAINPID
+LimitNOFILE=1048576
+LimitNPROC=1048576
+LimitCORE=infinity
+TimeoutStartSec=0
+Delegate=yes
+KillMode=process
+Restart=on-failure
+StartLimitBurst=3
+StartLimitInterval=60s
+
+# Uncomment these options if you want Docker to start containers on boot
+# ExecStartPost=/usr/local/bin/docker-containerd
+
+[Install]
+WantedBy=multi-user.target
+
