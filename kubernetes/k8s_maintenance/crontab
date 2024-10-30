@@ -1,0 +1,6 @@
+#*/5 * * * * /usr/sbin/ntpdate 192.168.1.35
+0 0 * * * /bin/bash /data/maintenance/scripts/backup_etcd.sh >>/tmp/backup_etcd_log.txt 2>&1 
+0 0 * * 7 /bin/bash /data/maintenance/scripts/clean-docker.sh >>/tmp/clean-docker-logs.txt 2>&1
+0 0 11 * * /bin/bash /data/maintenance/scripts/clean-es.sh > /dev/null  2>&1
+0 * * * * /bin/bash /data/maintenance/scripts/clean-cache.sh > /dev/null  2>&1
+* * * */6 * /bin/bash /data/maintenance/scripts/update-k8s-certs.sh > /tmp/update-k8s-certs.logs 2>&1

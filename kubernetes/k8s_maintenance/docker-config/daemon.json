@@ -1,0 +1,6 @@
+{
+  "insecure-registries": ["hub.registry2.com:32005"],
+  "data-root": "/data/docker",
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "bip": "172.19.0.1/16"
+}
