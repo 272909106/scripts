@@ -3,3 +3,4 @@
 /kubernetes/k8s_deploy/pack
 /kubernetes/k8s_deploy/registry
 /kubernetes/k8s_deploy/rpm
+kubernetes/k8s_deploy/adp-setup.log

@@ -17,7 +17,7 @@ dockerNet=172.19.0.1/16
 #主机的网络接口
 hostNetInt=ens160
 #vip的地址
-vipAddr=192.168.186.202
+vipAddr=192.168.186.250
 #部署主机ip
 deploy_host_ip=192.168.186.149
 #部署主机名
@@ -318,7 +318,7 @@ deploy_k8s_flannel() {
 #k8s_result=$(kubeadm init --config=kubeadm-config.yaml --ignore-preflight-errors=SystemVerification)
 #echo $k8s_result
 #kubeadm init --config=kubeadm-config.yaml --ignore-preflight-errors=SystemVerification
-kubeadm init --config=kubeadm-config-ha.yaml --ignore-preflight-errors=SystemVerification
+kubeadm init --config=$kubeadm_config --ignore-preflight-errors=SystemVerification
 
 is_path_exist $HOME/.kube
 \cp  /etc/kubernetes/admin.conf $HOME/.kube/config
