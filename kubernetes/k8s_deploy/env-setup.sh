@@ -2,6 +2,8 @@
 set -xe
 #设置主机名
 #hostnamectl set-hostname adp-master
+local_host_name=adp-master
+local_host_passwd=T110226@jxj
 
 is_path_exist() {
 	local path="$1"
@@ -11,26 +13,16 @@ is_path_exist() {
 	fi
 }
 
-systemArch=`uname -m`
-if [ $systemArch == 'x86_64' ] ;then
-	systemArch='x86'
-elif [ $systemArch == 'aarch64' ] ;then
-	systemArch='arm64'
-fi
-echo $systemArch
-
-#host_ip=`hostname -I`
-#host_ip=`hostname -I |awk '{ print $1}'`
-#主机解析、私有仓库域名写入本地hosts
-#echo "$host_ip  adp-master hub.registry2.com" >> /etc/hosts
+setHosts() {
 cat >> /etc/hosts <<EOF
 192.168.186.149 adp-master  hub.registry2.com
 EOF
+}
 
 
-
+setHostname_key_nopasswd(){
 #设置主机名
-hostnamectl set-hostname adp-master
+hostnamectl set-hostname $local_host_name
 
 #自动生成公钥、私钥
 if [ ! -f ~/.ssh/id_rsa ] ; then
@@ -41,37 +33,20 @@ fi
 rm -rf ~/.ssh/authorized_keys
 
 #配置免密
-#expect -c '
-#set timeout 10
-#set password "T110226@jxj"
-#
-#
-#spawn ssh-copy-id -i /root/.ssh/id_rsa.pub -o StrictHostKeyChecking=no root@adp-master 
-#expect {
-#    "password:" {
-#        send "$password\r"
-#    }
-#    "Are you sure you want to continue connecting" {
-#        send "yes\r"
-#        exp_continue
-#    }
-#}
-#expect eof
-#'
-#
-#ssh-copy-id -i /root/.ssh/id_rsa.pub -o StrictHostKeyChecking=no root@adp-master
 
 sshpassStatus=`rpm -qa |grep sshpass|wc -l`
 if [ $sshpassStatus == 0 ];then
-	rpm -ivh ./base-tools/$systemArch/sshpass-1.09-1.oe2203sp4.x86_64.rpm
-	sshpass -p "T110226@jxj" ssh-copy-id -i /root/.ssh/id_rsa.pub -o StrictHostKeyChecking=no root@adp-master
-else
+	rpm -ivh ./rpm/base-tools/sshpass*.rpm
+	sshpass -p "$local_host_passwd" ssh-copy-id -i /root/.ssh/id_rsa.pub -o StrictHostKeyChecking=no root@$local_host_name
+# else
 	
-	rpm -ivh ./base-tools/$systemArch/sshpass*.rpm || true
-	sshpass -p "T110226@jxj" ssh-copy-id -i /root/.ssh/id_rsa.pub -o StrictHostKeyChecking=no root@adp-master
+# 	rpm -ivh ./base-tools/$systemArch/sshpass*.rpm || true
+# 	sshpass -p "T110226@jxj" ssh-copy-id -i /root/.ssh/id_rsa.pub -o StrictHostKeyChecking=no root@adp-master
 fi
+}
 
 
+closeFirewall_swap(){
 #防火墙、selinux关闭
 systemctl stop firewalld &&
 systemctl disable firewalld &&
@@ -88,6 +63,10 @@ cat /etc/fstab
 
 swapon -a 
 
+}
+
+optimization_kernel() {
+
 #k8s内核优化
 if [ ! -f /etc/sysctl.d/k8s.conf ] ;then
 	cat > /etc/sysctl.d/k8s.conf <<EOF
@@ -100,8 +79,6 @@ sed -i "s/net.ipv4.ip_forward=0/net.ipv4.ip_forward=1/" /etc/sysctl.conf
 
 sysctl --system
 fi
-
-
 
 #开启启动此内核
 if [ ! -f /etc/modules-load.d/containerd.conf ];then
@@ -128,3 +105,13 @@ modprobe -- nf_conntrack
 EOF
 fi
 
+}
+
+main() {
+setHosts
+setHostname_key_nopasswd
+closeFirewall_swap
+optimization_kernel
+}
+
+main
